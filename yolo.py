@@ -91,21 +91,55 @@ def main():
         imgsz=args.imgsz,
     )
 
+    # Vẽ các biểu đồ kết quả huấn luyện
+    if hasattr(model, "trainer") and model.trainer:
+        try:
+            model.trainer.plot_results()  # results.png
+            model.trainer.plot_confusion_matrix()  # confusion_matrix.png
+            print(
+                f"📊 Đã lưu biểu đồ train và confusion matrix tại: {model.trainer.save_dir}"
+            )
+        except Exception as e:
+            print(f"⚠️ Không thể vẽ biểu đồ: {e}")
+
     # Validate
-    metrics = model.val(data=str(data_path))
+    metrics = model.val(data=str(data_path), plots=True)
     print(f"\nKết quả validation:")
     print(f"Top-1 Accuracy: {metrics.top1:.2f}%")
     print(f"Top-5 Accuracy: {metrics.top5:.2f}%")
 
+    # Xuất model dạng .pt
+    if hasattr(model, "trainer"):
+        best_weights = Path(model.trainer.save_dir) / "weights" / "best.pt"
+        export_path = Path("trained_model.pt")
+        if best_weights.exists():
+            shutil.copy2(best_weights, export_path)
+            print(f"✅ Đã xuất model ra {export_path}")
+        else:
+            print("⚠️ Không tìm thấy file best.pt để xuất")
+
     # Dự đoán trên tập test
     test_path = data_path / "test"
-    if test_path.exists() and any(test_path.iterdir()):
-        print("\nDự đoán trên tập test:")
-        results = model.predict(source=str(test_path))
-        for r in results[:3]:  # Hiển thị 3 kết quả đầu
-            print(f"{Path(r.path).name}: {r.names[r.probs.top1]} (confidence: {r.probs.top1conf:.2f})")
+    if test_path.exists():
+        # Thu thập tất cả đường dẫn ảnh hợp lệ trong các thư mục con
+        test_images = [
+            p for p in test_path.rglob("*")
+            if p.is_file() and p.suffix.lower() in IMG_EXTS
+        ]
+
+        if test_images:
+            print("\nDự đoán trên tập test:")
+            # model.predict hỗ trợ truyền danh sách các đường dẫn ảnh
+            results = model.predict(source=[str(p) for p in test_images])
+            for r in results[:3]:  # Hiển thị 3 kết quả đầu
+                print(
+                    f"{Path(r.path).name}: {r.names[r.probs.top1]} "
+                    f"(confidence: {r.probs.top1conf:.2f})"
+                )
+        else:
+            print("\n⚠️ Không tìm thấy ảnh trong tập test")
     else:
-        print("\n⚠️ Không tìm thấy ảnh trong tập test")
+        print("\n⚠️ Không tìm thấy thư mục test")
 
 if __name__ == "__main__":
     main()
