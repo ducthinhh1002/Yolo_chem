@@ -33,7 +33,7 @@ multi_scale: false
 overlap_mask: true
 mask_ratio: 4
 dropout: 0.0
-val: false
+val: true
 split: val
 save_json: false
 conf: null

@@ -91,32 +91,11 @@ def main():
         imgsz=args.imgsz,
     )
 
-    # Vẽ các biểu đồ kết quả huấn luyện
-    if hasattr(model, "trainer") and model.trainer:
-        try:
-            model.trainer.plot_results()  # results.png
-            model.trainer.plot_confusion_matrix()  # confusion_matrix.png
-            print(
-                f"📊 Đã lưu biểu đồ train và confusion matrix tại: {model.trainer.save_dir}"
-            )
-        except Exception as e:
-            print(f"⚠️ Không thể vẽ biểu đồ: {e}")
-
     # Validate
-    metrics = model.val(data=str(data_path), plots=True)
+    metrics = model.val(data=str(data_path))
     print(f"\nKết quả validation:")
     print(f"Top-1 Accuracy: {metrics.top1:.2f}%")
     print(f"Top-5 Accuracy: {metrics.top5:.2f}%")
-
-    # Xuất model dạng .pt
-    if hasattr(model, "trainer"):
-        best_weights = Path(model.trainer.save_dir) / "weights" / "best.pt"
-        export_path = Path("trained_model.pt")
-        if best_weights.exists():
-            shutil.copy2(best_weights, export_path)
-            print(f"✅ Đã xuất model ra {export_path}")
-        else:
-            print("⚠️ Không tìm thấy file best.pt để xuất")
 
     # Dự đoán trên tập test
     test_path = data_path / "test"
