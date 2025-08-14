@@ -1,0 +1,9 @@
+path: graph_dataset_split_det
+train: images/train
+val: images/val
+test: images/test
+names:
+  - bar
+  - line_1
+  - line_2
+  - line_3

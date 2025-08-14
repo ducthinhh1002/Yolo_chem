@@ -1,9 +1,0 @@
-path: graph_dataset_split
-train: train
-val: test
-nc: 4
-names:
-  0: bar
-  1: line_1
-  2: line_2
-  3: line_3
